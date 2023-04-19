@@ -1,0 +1,5 @@
+the UML diagram contains at least one inheritance relationship, correctly documented 	-2
+the UML diagram uses good OOP for field and member visibility 	-3
+the UML diagram uses good OOP for inheritance from parent classes 	-3
+the UML diagram has elements for all features of the GUI 	-3
+the UML diagram shows the implementation of the networking and/or multithreading component 	-3
