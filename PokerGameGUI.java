@@ -1,87 +1,76 @@
 
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
-import java.awt.BorderLayout;
-import javax.swing.JTextField;
-import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import javax.swing.JTextArea;
-import javax.swing.ImageIcon;
+import java.awt.*;
+import javax.swing.*;
+import java.awt.event.*;
 import java.net.URL;
-
-
-
-
-
+import java.util.*;
 
 public class PokerGameGUI {
 
-	private JFrame frame;
-	private JTextField textField;
-	private JTextField textField_1;
-	private JTextField textField_2;
-	private JButton foldButton;
-	private JButton callButton;
-	private JButton raiseButton;
-	private JTextField textField_3;
-	private JLabel lblNewLabel_3;
-	private JLabel lblNewLabel_4;
-	private JTextArea pot;
-	private JPanel riverPanel;
+    private JFrame frame;
+    private JTextField textField;
+    private JTextField textField_1;
+    private JTextField textField_2;
+    private JButton foldButton;
+    private JButton callButton;
+    private JButton raiseButton;
+    private JTextField textField_3;
+    private JLabel lblNewLabel_3;
+    private JLabel lblNewLabel_4;
+    private JTextArea pot;
+    private JPanel riverPanel;
+    private JPanel playerHandPanel;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					PokerGameGUI window = new PokerGameGUI();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	/**
-	 * Create the application.
-	 */
-	public PokerGameGUI() {
-		initialize();
-	}
-	
-	private JLabel createCardLabel(Card card) {
-    String imagePath = card.getImagePath();
-    System.out.println("Card: " + card.getRank() + " of suit " + card.getSuit());
-    System.out.println("Image path: " + imagePath);
-    URL imageURL = getClass().getResource(imagePath);
-    System.out.println("Image URL: " + imageURL);
-
-    if (imageURL == null) {
-        System.err.println("Error: Image not found for path " + imagePath);
-    } else {
-        ImageIcon icon = new ImageIcon(imageURL);
-        return new JLabel(icon);
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    PokerGameGUI window = new PokerGameGUI();
+                    window.frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
-    return null;
-}
-	/**
-	 * Initialize the contents of the frame.
-	 */
-	
-	private void initialize() {
-		//frame.setSize(800, 600);
-		frame = new JFrame();
-		frame.setBounds(100, 100, 800, 600);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(null);
+
+    public PokerGameGUI() {
+        initialize();
+    }
+
+    private JLabel createCardLabel(Card card) {
+        String imagePath = card.getImagePath();
+        URL imageURL = getClass().getResource(imagePath);
+
+        if (imageURL == null) {
+            System.err.println("Error: Image not found for path " + imagePath);
+        } else {
+            ImageIcon icon = new ImageIcon(imageURL);
+            Image img = icon.getImage().getScaledInstance(90, 100, Image.SCALE_DEFAULT);
+            ImageIcon resizedIcon = new ImageIcon(img);
+            return new JLabel(resizedIcon);
+        }
+        return null;
+    }
+
+    private Card getRandomCard(Set<Card> excludedCards) {
+        Random random = new Random();
+        Card card;
+
+        do {
+            int rank = random.nextInt(13) + 1;
+            int suit = random.nextInt(4) + 1;
+            card = new Card(rank, suit);
+        } while (excludedCards.contains(card));
+
+        return card;
+    }
+
+    private void initialize() {
+        frame = new JFrame();
+        frame.setBounds(100, 100, 800, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().setLayout(null);
 		
 		JLabel lblNewLabel = new JLabel("Name");
 		lblNewLabel.setBounds(308, 11, 27, 14);
@@ -164,22 +153,33 @@ public class PokerGameGUI {
 		frame.getContentPane().add(pot);
 		
 		riverPanel = new JPanel();
-	        riverPanel.setBounds(250, 250, 300, 100);
-	        frame.getContentPane().add(riverPanel);
+        riverPanel.setBounds(150, 150, 500, 100);
+        riverPanel.setLayout(new GridLayout(1, 5));
+        frame.getContentPane().add(riverPanel);
 
-	        // Example: create a sample river with 5 cards
-	        Card[] river = new Card[]{
-	            new Card(10, 2), // 10 of Diamonds
-	            new Card(11, 1), // Jack of Clubs
-	            new Card(12, 3), // Queen of Hearts
-	            new Card(13, 4), // King of Spades
-	            new Card(1, 1)   // Ace of Clubs
-	        };
+        playerHandPanel = new JPanel();
+        playerHandPanel.setBounds(150, 300, 200, 100);
+        playerHandPanel.setLayout(new GridLayout(1, 2));
+        frame.getContentPane().add(playerHandPanel);
 
-	        for (Card card : river) {
-	            riverPanel.add(createCardLabel(card));
-	        }
-		
+        Set<Card> dealtCards = new HashSet<>();
 
-	}
+        // Generate random unique cards for the river
+        Set<Card> riverCards = new HashSet<>();
+        for (int i = 0; i < 5; i++) {
+            Card card = getRandomCard(dealtCards);
+            dealtCards.add(card);
+            riverCards.add(card);
+            riverPanel.add(createCardLabel(card));
+        }
+
+        // Generate random unique cards for the player's hand, ensuring they are not in the dealt cards
+        Set<Card> playerHand = new HashSet<>();
+        for (int i = 0; i < 2; i++) {
+            Card card = getRandomCard(dealtCards);
+            dealtCards.add(card);
+            playerHand.add(card);
+            playerHandPanel.add(createCardLabel(card));
+        }
+    }
 }
