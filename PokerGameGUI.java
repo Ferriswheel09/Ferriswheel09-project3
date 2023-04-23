@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.net.URL;
 import java.util.*;
 
+
 public class PokerGameGUI {
 
     private JFrame frame;
@@ -20,6 +21,8 @@ public class PokerGameGUI {
     private JTextArea pot;
     private JPanel riverPanel;
     private JPanel playerHandPanel;
+    private JLabel handValueLabel;
+
 
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
@@ -162,6 +165,8 @@ public class PokerGameGUI {
         playerHandPanel.setLayout(new GridLayout(1, 2));
         frame.getContentPane().add(playerHandPanel);
 
+        
+
         Set<Card> dealtCards = new HashSet<>();
 
         // Generate random unique cards for the river
@@ -174,12 +179,19 @@ public class PokerGameGUI {
         }
 
         // Generate random unique cards for the player's hand, ensuring they are not in the dealt cards
-        Set<Card> playerHand = new HashSet<>();
+        Set<Card> playerHandCards = new HashSet<>();
         for (int i = 0; i < 2; i++) {
             Card card = getRandomCard(dealtCards);
             dealtCards.add(card);
-            playerHand.add(card);
+            playerHandCards.add(card);
             playerHandPanel.add(createCardLabel(card));
         }
+        Hand playerHand = new Hand(playerHandCards);
+        handValueLabel = new JLabel("Hand Value: 0");
+        handValueLabel.setBounds(300, 450, 200, 20);
+        frame.getContentPane().add(handValueLabel);
+        handValueLabel.setText("Hand Value: " + playerHand.calculateHandValue());
+
     }
+    
 }
