@@ -102,6 +102,7 @@ public class PokerGameGUI {
 		JButton connectButton = new JButton("Connect");
 		connectButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+                //todo: add connection
 			}
 		});
 		connectButton.setBounds(685, 7, 89, 23);
@@ -110,6 +111,7 @@ public class PokerGameGUI {
 		foldButton = new JButton("Fold"); 
 		foldButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+                //todo: add fold 
 			}
 		});
 		foldButton.setBounds(402, 527, 89, 23);
@@ -118,6 +120,7 @@ public class PokerGameGUI {
 		callButton = new JButton("Call");
 		callButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+                //todo
 			}
 		});
 		callButton.setBounds(501, 527, 89, 23);
@@ -126,6 +129,7 @@ public class PokerGameGUI {
 		raiseButton = new JButton("Raise");
 		raiseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+                //todo
 			}
 		});
 		raiseButton.setBounds(600, 527, 89, 23);
