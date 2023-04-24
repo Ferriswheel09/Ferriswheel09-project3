@@ -5,7 +5,6 @@ public class PokerGameServer{
 
     ServerSocket serverSock;
     ArrayList<Socket> connections;
-    ArrayList<String> members;
     int index;
     volatile boolean isDead;
 
@@ -43,10 +42,6 @@ public class PokerGameServer{
                          //start the thread
                         (new ClientHandler(clientSock)).start();   
 
-                    if(connections.size() == 2){
-                        (new GameTracker()).start();
-                        System.out.println("GameTracker Thread Started");
-                    }
 
                
                 
@@ -94,8 +89,25 @@ public class PokerGameServer{
 
                         }
 
+                        //After it does the removal, it sends all active connections the active list 
+                        //While removing one of the names 
+                        for(int i=0; i<connections.size(); i++){
+                            PrintWriter tempOut = new PrintWriter(connections.get(i).getOutputStream());
+                            tempOut.println("START_CLIENT_LIST");
+                            for(int j=0; j<members.size(); j++){
+                                tempOut.println(members.get(j));
+                            }
+                            tempOut.println("END_CLIENT_LIST");
+                            tempOut.flush();
+                        }
+                    }
 
-                    }  
+                    //Otherwise, we can assume that what we received was a message, and we can send it to all active users
+                    else{
+                        
+                    }
+                    
+                    
                 }
 
             }catch(Exception e){}
@@ -114,45 +126,6 @@ public class PokerGameServer{
     }
 
  
-    private class GameTracker extends Thread{
-        int memberNumbers;
-        boolean handshake = true;
-        boolean cardDemo = true;
-        public GameTracker(){
-            memberNumbers = 2;
-        }
 
-        public void run(){
-            try{
-                while(true){
-                   
-                    if(handshake){
-                        for(int i=0; i<connections.size(); i++){    
-                            PrintWriter out = new PrintWriter(connections.get(i).getOutputStream());
-                            out.println("Established connection");
-                            out.flush();
-                            handshake = false;
-                        }
-                    }
-                    if(cardDemo){
-                        for(int i=0; i<connections.size(); i++){
-                            PrintWriter out = new PrintWriter(connections.get(i).getOutputStream());
-                            out.println("7_3");
-                            out.println("13_1");
-                            out.flush();
-                            cardDemo = false;
-                        }
-                        
-                    }
-                    
-                }
-            }
-
-            catch(Exception e){
-                System.err.println("GameTracker failed");
-            }
-
-        }
-    }
     
 }
