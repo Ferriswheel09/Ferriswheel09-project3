@@ -1,137 +1,131 @@
-import java.io.*;
-import java.net.*;
 import java.util.*;
+import java.net.*;
+import java.io.*;
+public class PokerGameServer{
 
-public class PokerGameServer {
+    ServerSocket serverSock;
+    ArrayList<Socket> connections;
+    int index;
+    volatile boolean isDead;
 
-    private ServerSocket serverSocket;
-    private List<PlayerThread> playerThreads;
-    private List<String> playerNames;
-    private List<Integer> playerMoney;
+    public PokerGameServer(int port){
 
-    public PokerGameServer(int port) {
-        playerThreads = new ArrayList<PlayerThread>();
-        playerNames = new ArrayList<String>();
-        playerMoney = new ArrayList<Integer>();
+        //Instantiates all of the components, including the server socket, member names, and all active connections
+        try{
+            serverSock = new ServerSocket(port);
+            index = 0;
+            members = new ArrayList<String>();
+            connections = new ArrayList<Socket>();
+            System.out.println("PokerServer started on port " + port);
+        }
+        catch(Exception e){
+            System.err.println("Cannot establish server socket");
+            System.exit(1);
+        }
+    }
 
-        try {
-            serverSocket = new ServerSocket(port);
-            System.out.println("Server started on port " + port);
+    
+    public void serve(){
 
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
+        while(true){
+            try{
+                //accept incoming connection
+                Socket clientSock = serverSock.accept();
+                System.out.println("New connection: "+ clientSock.getRemoteSocketAddress());
+
+                //If the first line is secret, then a password is created
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
+               
+                        connections.add(clientSock);
+
                 
-                PlayerThread playerThread = new PlayerThread(clientSocket);
-                playerThreads.add(playerThread);
-                playerThread.start();
+                         //start the thread
+                        (new ClientHandler(clientSock)).start();   
 
-                if (playerThreads.size() == 4) {
-                    startGame();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+
+               
+                
+                
+               
+                
+                //continue looping
+            }catch(Exception e){} //exit serve if exception
         }
     }
 
-    private synchronized void startGame() {
-        // Send "start" command to all players
-        for (PlayerThread playerThread : playerThreads) {
-            try {
-                playerThread.out.writeObject("start");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    private class ClientHandler extends Thread{
+
+        Socket sock;
+
+        public ClientHandler(Socket sock){
+            this.sock=sock;
         }
 
-        // Initialize game state
-        // ...
+        public void run(){
+            PrintWriter out=null;
+            BufferedReader in=null;
+            try{
+                //Creates the input/output corresponding to the sockets stream
+                out = new PrintWriter(sock.getOutputStream());
+                in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 
-        // Send game state to all players
-        // ...
+                //read and echo back forever!
+                while(true){
+                    //Checks first to see if the message is null
+                    String msg = in.readLine();
+                    if(msg == null){
+                        out.close();
+                        in.close();
+                        sock.close();
 
-        // Start game loop
-        // ...
-    }
+                        //After the socket is closed, once it reaches this condition
+                        //If the connection arraylist finds the same closed socket, it removes it from the arraylist
+                        //Of name and active connections
+                        for(int i=0; i<connections.size(); i++){
+                            if(connections.get(i) == sock){
+                                connections.remove(i);
+                                members.remove(i);
+                            }
 
-    private synchronized void updateGameState() {
-        // Update game state
-        // ...
+                        }
 
-        // Send updated game state to all players
-        // ...
-    }
-
-    private class PlayerThread extends Thread {
-        private Socket socket;
-        private ObjectInputStream in;
-        private ObjectOutputStream out;
-        private int playerIndex;
-
-        public PlayerThread(Socket socket) {
-            this.socket = socket;
-
-            try {
-                in = new ObjectInputStream(socket.getInputStream());
-                out = new ObjectOutputStream(socket.getOutputStream());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void run() {
-            try {
-                // Receive player name
-                String playerName = (String) in.readObject();
-                playerNames.add(playerName);
-                playerIndex = playerNames.size() - 1;
-                playerMoney.add(1000);
-
-                // Send player index to client
-                out.writeObject(playerIndex);
-
-                // Send other player names to client
-                for (int i = 0; i < playerNames.size(); i++) {
-                    if (i != playerIndex) {
-                        out.writeObject(playerNames.get(i));
+                        //After it does the removal, it sends all active connections the active list 
+                        //While removing one of the names 
+                        for(int i=0; i<connections.size(); i++){
+                            PrintWriter tempOut = new PrintWriter(connections.get(i).getOutputStream());
+                            tempOut.println("START_CLIENT_LIST");
+                            for(int j=0; j<members.size(); j++){
+                                tempOut.println(members.get(j));
+                            }
+                            tempOut.println("END_CLIENT_LIST");
+                            tempOut.flush();
+                        }
                     }
-                }
 
-                // Wait for start command
-                while (true) {
-                    String command = (String) in.readObject();
-                    if (command.equals("start")) {
-                        break;
+                    //Otherwise, we can assume that what we received was a message, and we can send it to all active users
+                    else{
+                        
                     }
+                    
+                    
                 }
 
-                // Game loop
-                while (true) {
-                    // Receive player action
-                    // ...
+            }catch(Exception e){}
 
-                    // Update game state
-                    updateGameState();
+            //note the loss of the connection
+            System.out.println("Connection lost: "+sock.getRemoteSocketAddress());
 
-                    // Check for end of game
-                    // ...
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
+
     }
 
-    public static void main(String[] args) {
+    public static void main(String args[]){
         int port = Integer.parseInt(args[0]);
-        new PokerGameServer(port);
+        PokerGameServer server = new PokerGameServer(port);
+        server.serve();
     }
+
+ 
+
+    
 }

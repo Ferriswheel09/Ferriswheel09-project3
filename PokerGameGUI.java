@@ -1,16 +1,16 @@
-
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.net.*;
 import java.net.URL;
 import java.util.*;
+import java.io.*;
 
 public class PokerGameGUI {
 
     private JFrame frame;
-    private JTextField textField;
-    private JTextField textField_1;
-    private JTextField textField_2;
+    private JTextField ip;
+    private JTextField port;
     private JButton foldButton;
     private JButton callButton;
     private JButton raiseButton;
@@ -20,6 +20,7 @@ public class PokerGameGUI {
     private JTextArea pot;
     private JPanel riverPanel;
     private JPanel playerHandPanel;
+    private ClientSide hello;
 
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
@@ -72,9 +73,7 @@ public class PokerGameGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(null);
 		
-		JLabel lblNewLabel = new JLabel("Name");
-		lblNewLabel.setBounds(308, 11, 27, 14);
-		frame.getContentPane().add(lblNewLabel);
+
 		
 		JLabel lblNewLabel_1 = new JLabel("IP");
 		lblNewLabel_1.setBounds(448, 11, 46, 14);
@@ -83,25 +82,29 @@ public class PokerGameGUI {
 		JLabel lblNewLabel_2 = new JLabel("Port");
 		lblNewLabel_2.setBounds(574, 11, 46, 14);
 		frame.getContentPane().add(lblNewLabel_2);
+
 		
-		textField = new JTextField();
-		textField.setBounds(336, 8, 86, 20);
-		frame.getContentPane().add(textField);
-		textField.setColumns(10);
+		ip = new JTextField();
+		ip.setBounds(458, 8, 86, 20);
+		frame.getContentPane().add(ip);
+		ip.setColumns(10);
 		
-		textField_1 = new JTextField();
-		textField_1.setBounds(458, 8, 86, 20);
-		frame.getContentPane().add(textField_1);
-		textField_1.setColumns(10);
-		
-		textField_2 = new JTextField();
-		textField_2.setBounds(600, 8, 61, 20);
-		frame.getContentPane().add(textField_2);
-		textField_2.setColumns(10);
+		port = new JTextField();
+		port.setBounds(600, 8, 61, 20);
+		frame.getContentPane().add(port);
+		port.setColumns(10);
 		
 		JButton connectButton = new JButton("Connect");
 		connectButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+        try{
+          int portNum = Integer.parseInt(port.getText());
+          hello = new ClientSide(ip.getText(), portNum);
+        }
+        catch(Exception f){
+          System.err.println("Error connecting");
+          JOptionPane.showMessageDialog(null, "Error connecting");
+        }
 			}
 		});
 		connectButton.setBounds(685, 7, 89, 23);
@@ -180,6 +183,36 @@ public class PokerGameGUI {
             dealtCards.add(card);
             playerHand.add(card);
             playerHandPanel.add(createCardLabel(card));
+        }
+    }
+    
+    private class ClientSide{
+        private String ip;
+        private int port;
+        private PrintWriter out;
+        private BufferedReader in;
+        private Socket sock;
+
+        public ClientSide(String ip, int port){
+            this.ip = ip;
+            this.port = port;
+            try{
+                sock = new Socket(ip, port);
+            }
+            catch(Exception e){
+                System.err.println("Cannot connect");
+            }
+
+            try{
+                out = new PrintWriter(sock.getOutputStream());
+                out.println(ip + " " + port);
+
+                in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+                
+            }
+            catch(Exception e){
+                System.err.println("IO Exception");
+            }
         }
     }
 }
