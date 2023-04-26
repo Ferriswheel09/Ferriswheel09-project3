@@ -18,6 +18,7 @@ public class PokerGameGUI extends JFrame {
   private JTextField chips;
 
   private JPanel playerRivalHandPanel;
+  private JPanel riverPanel;
   private JPanel centerPanel;
 
   private JTextArea members;
@@ -107,6 +108,16 @@ public class PokerGameGUI extends JFrame {
     );
     bottomPanel.add(raiseButton);
 
+    JButton testButton = new JButton("Test");
+    testButton.addActionListener(
+      new ActionListener(){
+        public void actionPerformed(ActionEvent e){
+          hello.testCondition();
+        }
+      }
+    );
+    bottomPanel.add(testButton);
+
     JLabel chipsLabel = new JLabel("Chips");
     bottomPanel.add(chipsLabel);
 
@@ -127,7 +138,7 @@ public class PokerGameGUI extends JFrame {
 
     //Center panel is added
     
-    JPanel riverPanel = new JPanel();
+    riverPanel = new JPanel();
     riverPanel.setLayout(new FlowLayout());
     
     riverPanel.add(createCardLabel(new Card(1,1)));
@@ -171,6 +182,11 @@ public class PokerGameGUI extends JFrame {
         System.err.println("IO Exception");
       }
     }
+
+    public void testCondition(){
+      out.println("Test");
+      out.flush();
+    }
   }
 
   private class Reader extends Thread {
@@ -192,13 +208,21 @@ public class PokerGameGUI extends JFrame {
           if (msg.equals("Established connection")) {
             System.out.println(msg);
           }
+          else if(msg.equals("Receiving card")){
+            String card = in.readLine();
+            String[] parts = card.split("_");
+            int first = Integer.parseInt(parts[0]);
+            int second = Integer.parseInt(parts[1]);
+
+            playerRivalHandPanel.add(createCardLabel(new Card(first, second)));
+            centerPanel.revalidate();
+          }
           else{
             String[] parts = msg.split("_");
             int first = Integer.parseInt(parts[0]);
             int second = Integer.parseInt(parts[1]);
 
-            playerRivalHandPanel.add(createCardLabel(new Card(first, second)));
-            centerPanel.add(playerRivalHandPanel, BorderLayout.SOUTH);
+            riverPanel.add(createCardLabel(new Card(first, second)));
             centerPanel.revalidate();
           }
         }

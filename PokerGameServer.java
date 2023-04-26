@@ -5,9 +5,10 @@ public class PokerGameServer{
 
     ServerSocket serverSock;
     ArrayList<Socket> connections;
+    Socket connectionOne;
+    Socket connectionTwo;
     ArrayList<String> members;
     int index;
-    volatile boolean isDead;
 
     public PokerGameServer(int port){
 
@@ -38,6 +39,14 @@ public class PokerGameServer{
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
                
                         connections.add(clientSock);
+                        if(connectionOne == null){
+                            connectionOne = clientSock;
+                            System.out.println("connectionOne established");
+                        }
+                        else{
+                            connectionTwo = clientSock;
+                            System.out.println("connectionTwo established");
+                        }
 
                 
                          //start the thread
@@ -67,41 +76,40 @@ public class PokerGameServer{
         }
 
         public void run(){
-            PrintWriter out=null;
+            PrintWriter outConnectionOne=null;
+            PrintWriter outConnectionTwo=null;
             BufferedReader in=null;
             try{
                 //Creates the input/output corresponding to the sockets stream
-                out = new PrintWriter(sock.getOutputStream());
+                outConnectionOne = new PrintWriter(connectionOne.getOutputStream());
+               
+
                 in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 
                 //read and echo back forever!
                 while(true){
+                if(connectionTwo != null){
+                    outConnectionTwo = new PrintWriter(connectionTwo.getOutputStream());
+                }
                     //Checks first to see if the message is null
                     String msg = in.readLine();
-                    if(msg == null){
-                        out.close();
-                        in.close();
-                        sock.close();
-
-                        //After the socket is closed, once it reaches this condition
-                        //If the connection arraylist finds the same closed socket, it removes it from the arraylist
-                        //Of name and active connections
-                        for(int i=0; i<connections.size(); i++){
-                            if(connections.get(i) == sock){
-                                connections.remove(i);
-                                members.remove(i);
-                            }
-
-                        }
-
-
-                    }  
+                   
+                    
+                    if(msg.equals("Test")){
+                        outConnectionOne.println("Receiving card");
+                        outConnectionTwo.println("Receiving card");
+                        outConnectionOne.println("1_1");
+                        outConnectionTwo.println("1_1");
+                        outConnectionOne.flush();
+                        outConnectionTwo.flush();
+                    }
                 }
 
             }catch(Exception e){}
 
             //note the loss of the connection
             System.out.println("Connection lost: "+sock.getRemoteSocketAddress());
+            System.out.println("This exception is occurring");
 
         }
 
