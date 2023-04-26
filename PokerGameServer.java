@@ -9,6 +9,7 @@ public class PokerGameServer{
     Socket connectionTwo;
     ArrayList<String> members;
     int index;
+    DeckOfCards deck;
 
     public PokerGameServer(int port){
 
@@ -18,6 +19,7 @@ public class PokerGameServer{
             index = 0;
             members = new ArrayList<String>();
             connections = new ArrayList<Socket>();
+            deck = new DeckOfCards();
             System.out.println("PokerServer started on port " + port);
         }
         catch(Exception e){
@@ -53,6 +55,7 @@ public class PokerGameServer{
                         (new ClientHandler(clientSock)).start();   
 
                     if(connections.size() == 2){
+                        deck.shuffle();
                         (new GameTracker()).start();
                         System.out.println("GameTracker Thread Started");
                     }
@@ -79,9 +82,11 @@ public class PokerGameServer{
             PrintWriter outConnectionOne=null;
             PrintWriter outConnectionTwo=null;
             BufferedReader in=null;
+            int tally = 0;
             try{
                 //Creates the input/output corresponding to the sockets stream
                 outConnectionOne = new PrintWriter(connectionOne.getOutputStream());
+                boolean firstTime = true;
                
 
                 in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
@@ -95,13 +100,30 @@ public class PokerGameServer{
                     String msg = in.readLine();
                    
                     
-                    if(msg.equals("Test")){
-                        outConnectionOne.println("Receiving card");
-                        outConnectionTwo.println("Receiving card");
-                        outConnectionOne.println("1_1");
-                        outConnectionTwo.println("1_1");
+                    if(msg.equals("Test") && firstTime){
+                        outConnectionOne.println("Receiving first river");
+                        outConnectionTwo.println("Receiving first river");
+                        String str = deck.drawCard();
+                        String strTwo = deck.drawCard();
+                        outConnectionOne.println(str);
+                        outConnectionTwo.println(str);
+                        outConnectionOne.println(strTwo);
+                        outConnectionTwo.println(strTwo);
                         outConnectionOne.flush();
                         outConnectionTwo.flush();
+                        firstTime = false;
+                        tally+=2;
+                    }
+                    else if(msg.equals("Test") && tally<5){
+                        outConnectionOne.println("Receiving new river card");
+                        outConnectionTwo.println("Receiving new river card");
+                        String str = deck.drawCard();
+                        outConnectionOne.println(str);
+                        outConnectionTwo.println(str);
+                        outConnectionOne.flush();
+                        outConnectionTwo.flush();
+                        tally++;
+
                     }
                 }
 
@@ -126,32 +148,41 @@ public class PokerGameServer{
         int memberNumbers;
         boolean handshake = true;
         boolean cardDemo = true;
+        
         public GameTracker(){
             memberNumbers = 2;
+            
         }
 
         public void run(){
             try{
+                boolean initial = true;
                 while(true){
                    
                     if(handshake){
                         for(int i=0; i<connections.size(); i++){    
                             PrintWriter out = new PrintWriter(connections.get(i).getOutputStream());
-                            out.println("Established connection");
+                            out.println("Two players joined. Game will now begin!");
                             out.flush();
                             handshake = false;
                         }
                     }
-                    if(cardDemo){
+
+                    if(initial){
                         for(int i=0; i<connections.size(); i++){
                             PrintWriter out = new PrintWriter(connections.get(i).getOutputStream());
-                            out.println("7_3");
-                            out.println("13_1");
+                            out.println("Receiving initial cards");
+                            out.println(deck.drawCard());
+                            out.println(deck.drawCard());
                             out.flush();
-                            cardDemo = false;
                         }
-                        
+                        initial=false;
                     }
+
+
+                    
+                        
+                    
                     
                 }
             }

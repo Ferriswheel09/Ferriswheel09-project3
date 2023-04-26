@@ -141,13 +141,22 @@ public class PokerGameGUI extends JFrame {
     riverPanel = new JPanel();
     riverPanel.setLayout(new FlowLayout());
     
-    riverPanel.add(createCardLabel(new Card(1,1)));
-    riverPanel.add(createCardLabel(new Card(3,3)));
-    centerPanel.add(riverPanel, BorderLayout.CENTER);
+    centerPanel.add(riverPanel, BorderLayout.NORTH);
 
+    JPanel gamingPanel = new JPanel();
+    gamingPanel.setLayout(new BoxLayout(gamingPanel, BoxLayout.Y_AXIS));
+    JLabel player1 = new JLabel("You");
+    gamingPanel.add(player1);
     playerRivalHandPanel = new JPanel(new FlowLayout());
-    playerRivalHandPanel.add(createCardLabel(new Card(2,2)));
-    centerPanel.add(playerRivalHandPanel, BorderLayout.SOUTH);
+    gamingPanel.add(playerRivalHandPanel, BorderLayout.WEST);
+
+    gamingPanel.add(new JLabel("Opponent"));
+    JPanel rivalPanel = new JPanel(new FlowLayout());
+    rivalPanel.add(createCardLabel(new Card(0,0)));
+    rivalPanel.add(createCardLabel(new Card(0,0)));
+    gamingPanel.add(rivalPanel);
+    
+    centerPanel.add(gamingPanel, BorderLayout.SOUTH);
 
     this.add(centerPanel, BorderLayout.CENTER);
 
@@ -187,6 +196,22 @@ public class PokerGameGUI extends JFrame {
       out.println("Test");
       out.flush();
     }
+
+    public void fold(){
+      out.println("Fold");
+      out.flush();
+    }
+
+    public void raise(){
+      out.println("Raise");
+      out.flush();
+    }
+    
+    //Match the bet that was made
+    public void call(){
+      out.println("Call");
+      out.flush();
+    }
   }
 
   private class Reader extends Thread {
@@ -208,23 +233,50 @@ public class PokerGameGUI extends JFrame {
           if (msg.equals("Established connection")) {
             System.out.println(msg);
           }
-          else if(msg.equals("Receiving card")){
-            String card = in.readLine();
-            String[] parts = card.split("_");
+          else if(msg.equals("Receiving initial cards")){
+            String cardOne = in.readLine();
+            String[] parts = cardOne.split("_");
+            
+            String cardTwo = in.readLine();
+            String[] partsTwo = cardTwo.split("_");
+
             int first = Integer.parseInt(parts[0]);
             int second = Integer.parseInt(parts[1]);
+
+            int third = Integer.parseInt(partsTwo[0]);
+            int fourth = Integer.parseInt(partsTwo[1]);
 
             playerRivalHandPanel.add(createCardLabel(new Card(first, second)));
+            playerRivalHandPanel.add(createCardLabel(new Card(third, fourth)));
             centerPanel.revalidate();
           }
-          else{
-            String[] parts = msg.split("_");
+          
+          else if(msg.equals("Receiving first river")){
+            String cardOne = in.readLine();
+            String[] parts = cardOne.split("_");
+            
+            String cardTwo = in.readLine();
+            String[] partsTwo = cardTwo.split("_");
+
             int first = Integer.parseInt(parts[0]);
             int second = Integer.parseInt(parts[1]);
 
+            int third = Integer.parseInt(partsTwo[0]);
+            int fourth = Integer.parseInt(partsTwo[1]);
+
             riverPanel.add(createCardLabel(new Card(first, second)));
+            riverPanel.add(createCardLabel(new Card(third, fourth)));
             centerPanel.revalidate();
           }
+        else if(msg.equals("Receiving new river card")){
+          String cardOne = in.readLine();
+          String[] parts = cardOne.split("_");
+          int first = Integer.parseInt(parts[0]);
+          int second = Integer.parseInt(parts[1]);
+          riverPanel.add(createCardLabel(new Card(first, second)));
+          centerPanel.revalidate();
+        }
+          
         }
       } catch (Exception e) {
         System.err.println("Reader failed");

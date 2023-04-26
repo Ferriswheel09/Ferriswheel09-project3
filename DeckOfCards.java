@@ -12,7 +12,7 @@ public class DeckOfCards {
         cards = new ArrayList<>();
         for (String suit : SUITS) {
             for (String rank : RANKS) {
-                String card = rank + ':' + suit;
+                String card = rank + '_' + suit;
                 cards.add(card);
             }
         }
