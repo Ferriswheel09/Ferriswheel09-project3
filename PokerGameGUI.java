@@ -22,7 +22,8 @@ public class PokerGameGUI {
     private JPanel riverPanel;
     private JPanel playerHandPanel;
     private JLabel handValueLabel;
-
+    DeckOfCards deck = new DeckOfCards();
+    
 
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
@@ -38,6 +39,7 @@ public class PokerGameGUI {
     }
 
     public PokerGameGUI() {
+        deck.shuffle();
         initialize();
     }
 
@@ -57,15 +59,21 @@ public class PokerGameGUI {
     }
 
     private Card getRandomCard(Set<Card> excludedCards) {
-        Random random = new Random();
-        Card card;
+        // Random random = new Random();
+        // Card card;
 
-        do {
-            int rank = random.nextInt(13) + 1;
-            int suit = random.nextInt(4) + 1;
-            card = new Card(rank, suit);
-        } while (excludedCards.contains(card));
-
+        // do {
+        //     int rank = random.nextInt(13) + 1;
+        //     int suit = random.nextInt(4) + 1;
+        //     card = new Card(rank, suit);
+        //     // excludedCards.add(card);
+        // } while (!excludedCards.contains(card));
+        // deck.shuffle();
+        String drawnCard = deck.drawCard();
+        String[] split  = drawnCard.split(":");
+        int rank = Integer.parseInt(split[0]);
+        int suit = Integer.parseInt(split[1]);
+        Card card = new Card (rank, suit);
         return card;
     }
 
