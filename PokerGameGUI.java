@@ -87,7 +87,9 @@ public class PokerGameGUI extends JFrame {
     foldButton = new JButton("Fold");
     foldButton.addActionListener(
       new ActionListener() {
-        public void actionPerformed(ActionEvent e) {}
+        public void actionPerformed(ActionEvent e) {
+          hello.fold();
+        }
       }
     );
     bottomPanel.add(foldButton);
@@ -95,7 +97,9 @@ public class PokerGameGUI extends JFrame {
     callButton = new JButton("Call");
     callButton.addActionListener(
       new ActionListener() {
-        public void actionPerformed(ActionEvent e) {}
+        public void actionPerformed(ActionEvent e) {
+          hello.call();
+        }
       }
     );
     bottomPanel.add(callButton);
@@ -103,20 +107,13 @@ public class PokerGameGUI extends JFrame {
     raiseButton = new JButton("Raise");
     raiseButton.addActionListener(
       new ActionListener() {
-        public void actionPerformed(ActionEvent e) {}
+        public void actionPerformed(ActionEvent e) {
+          hello.raise();
+        }
       }
     );
     bottomPanel.add(raiseButton);
 
-    JButton testButton = new JButton("Test");
-    testButton.addActionListener(
-      new ActionListener(){
-        public void actionPerformed(ActionEvent e){
-          hello.testCondition();
-        }
-      }
-    );
-    bottomPanel.add(testButton);
 
     JLabel chipsLabel = new JLabel("Chips");
     bottomPanel.add(chipsLabel);
@@ -192,11 +189,6 @@ public class PokerGameGUI extends JFrame {
       }
     }
 
-    public void testCondition(){
-      out.println("Test");
-      out.flush();
-    }
-
     public void fold(){
       out.println("Fold");
       out.flush();
@@ -233,7 +225,7 @@ public class PokerGameGUI extends JFrame {
           if (msg.equals("Established connection")) {
             System.out.println(msg);
           }
-          else if(msg.equals("Receiving initial cards")){
+          if(msg.equals("Receiving initial cards")){
             String cardOne = in.readLine();
             String[] parts = cardOne.split("_");
             
@@ -251,7 +243,7 @@ public class PokerGameGUI extends JFrame {
             centerPanel.revalidate();
           }
           
-          else if(msg.equals("Receiving first river")){
+          if(msg.equals("Receiving first river")){
             String cardOne = in.readLine();
             String[] parts = cardOne.split("_");
             
@@ -268,12 +260,25 @@ public class PokerGameGUI extends JFrame {
             riverPanel.add(createCardLabel(new Card(third, fourth)));
             centerPanel.revalidate();
           }
-        else if(msg.equals("Receiving new river card")){
+        if(msg.equals("Receiving new river card")){
           String cardOne = in.readLine();
           String[] parts = cardOne.split("_");
           int first = Integer.parseInt(parts[0]);
           int second = Integer.parseInt(parts[1]);
           riverPanel.add(createCardLabel(new Card(first, second)));
+          centerPanel.revalidate();
+        }
+        if(msg.equals("Lost")){
+          JOptionPane.showMessageDialog(null, "You lost. Try again.");
+        }
+        if(msg.equals("Won")){
+          JOptionPane.showMessageDialog(null, "All players folded. You won!!");
+        }
+        
+        if(msg.equals("Clear")){
+          System.out.println("Made it here");
+          playerRivalHandPanel.removeAll();
+          riverPanel.removeAll();
           centerPanel.revalidate();
         }
           
