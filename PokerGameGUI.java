@@ -1,12 +1,12 @@
-
 import java.awt.*;
-import javax.swing.*;
 import java.awt.event.*;
+import java.io.*;
+import java.net.*;
 import java.net.URL;
 import java.util.*;
 
 
-public class PokerGameGUI {
+public class PokerGameGUI extends JFrame {
 
     private JFrame frame;
     private JTextField textField;
@@ -43,20 +43,22 @@ public class PokerGameGUI {
         initialize();
     }
 
-    private JLabel createCardLabel(Card card) {
-        String imagePath = card.getImagePath();
-        URL imageURL = getClass().getResource(imagePath);
+  private JLabel createCardLabel(Card card) {
+    String imagePath = card.getImagePath();
+    URL imageURL = getClass().getResource(imagePath);
 
-        if (imageURL == null) {
-            System.err.println("Error: Image not found for path " + imagePath);
-        } else {
-            ImageIcon icon = new ImageIcon(imageURL);
-            Image img = icon.getImage().getScaledInstance(90, 100, Image.SCALE_DEFAULT);
-            ImageIcon resizedIcon = new ImageIcon(img);
-            return new JLabel(resizedIcon);
-        }
-        return null;
+    if (imageURL == null) {
+      System.err.println("Error: Image not found for path " + imagePath);
+    } else {
+      ImageIcon icon = new ImageIcon(imageURL);
+      Image img = icon
+        .getImage()
+        .getScaledInstance(90, 100, Image.SCALE_DEFAULT);
+      ImageIcon resizedIcon = new ImageIcon(img);
+      return new JLabel(resizedIcon);
     }
+    return null;
+  }
 
     private Card getRandomCard(Set<Card> excludedCards) {
         // Random random = new Random();
