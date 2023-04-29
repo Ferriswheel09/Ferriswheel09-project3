@@ -268,18 +268,25 @@ public class PokerGameGUI extends JFrame {
           riverPanel.add(createCardLabel(new Card(first, second)));
           centerPanel.revalidate();
         }
-        if(msg.equals("Lost")){
-          JOptionPane.showMessageDialog(null, "You lost. Try again.");
+        if(msg.equals("Lost Fold")){
+          JOptionPane.showMessageDialog(null, "You folded. Try again.");
         }
-        if(msg.equals("Won")){
+        if(msg.equals("Won Fold")){
           JOptionPane.showMessageDialog(null, "All players folded. You won!!");
         }
         
         if(msg.equals("Clear")){
-          System.out.println("Made it here");
           playerRivalHandPanel.removeAll();
           riverPanel.removeAll();
           centerPanel.revalidate();
+        }
+
+        if(msg.equals("Won Showdown")){
+          JOptionPane.showMessageDialog(null, "Better hand. You won!!");
+        }
+
+        if(msg.equals("Lost Showdown")){
+          JOptionPane.showMessageDialog(null, "Weak hand. Try again.");
         }
           
         }

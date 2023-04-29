@@ -5,8 +5,6 @@ public class PokerGameServer{
 
     ServerSocket serverSock;
     ArrayList<Socket> connections;
-    Socket connectionOne;
-    Socket connectionTwo;
     ArrayList<String> members;
     int index;
     int users;
@@ -99,13 +97,13 @@ public class PokerGameServer{
                         for(int i=0; i<users; i++){
                             if(id == i){
                                 PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
-                                pw.println("Lost");
+                                pw.println("Lost Fold");
                                 pw.flush();
 
                             }
                             else{
                                 PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
-                                pw.println("Won");
+                                pw.println("Won Fold");
                                 pw.flush();
                             }
                         }
@@ -116,13 +114,9 @@ public class PokerGameServer{
                         for(int i=0; i<users; i++){
                             if(id == i && id == 0){
                                 player1Confirm=true;
-                                System.out.println("Player 1");
-                                System.out.println(player1Confirm);
                             }
                             else if(id == i && id ==1){
                                 player2Confirm=true;
-                                System.out.println("Player 2");
-                                System.out.println(player2Confirm);
                             }
                         }
                     }
@@ -148,9 +142,9 @@ public class PokerGameServer{
     private class GameTracker extends Thread{
         int memberNumbers;
         boolean cardDemo = true;
-        String[] player1Cards;
-        String[] player2Cards;
-        String[] community;
+        HashSet<String> player1Cards;
+        HashSet<String> player2Cards;
+        HashSet<String> community;
         boolean preflop;
         boolean flop;
         boolean turn;
@@ -159,9 +153,9 @@ public class PokerGameServer{
         
         public GameTracker(){
             memberNumbers = 2;
-            player1Cards = new String[2];
-            player2Cards = new String[2];
-            community = new String[5];
+            player1Cards = new HashSet<String>();
+            player2Cards = new HashSet<String>();
+            community = new HashSet<String>();
             
             preflop = true;
             flop = true;
@@ -184,17 +178,21 @@ public class PokerGameServer{
                             PrintWriter out = new PrintWriter(connections.get(i).getOutputStream());
                             out.println("Receiving initial cards");
                             if(i == 0){
-                                player1Cards[0] = deck.drawCard();
-                                player1Cards[1] = deck.drawCard();
-                                out.println(player1Cards[0]);
-                                out.println(player1Cards[1]);
+                                String str = deck.drawCard();
+                                String strTwo = deck.drawCard();
+                                player1Cards.add(str);
+                                player1Cards.add(strTwo);
+                                out.println(str);
+                                out.println(strTwo);
                             }
 
                             if(i == 1){
-                                player2Cards[0] = deck.drawCard();
-                                player2Cards[1] = deck.drawCard();
-                                out.println(player2Cards[0]);
-                                out.println(player2Cards[1]);
+                                String str = deck.drawCard();
+                                String strTwo = deck.drawCard();
+                                player2Cards.add(str);
+                                player2Cards.add(strTwo);
+                                out.println(str);
+                                out.println(strTwo);
                             }
                             
                             out.flush();
@@ -207,8 +205,8 @@ public class PokerGameServer{
                             if(player1Confirm && player2Confirm && playerFold == false){
                                 String str = deck.drawCard();
                                 String strTwo = deck.drawCard();
-                                community[0] = str;
-                                community[1] = strTwo;
+                                community.add(str);
+                                community.add(strTwo);
                                 for(int i=0; i<connections.size(); i++){
                                     PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
                                     pw.println("Receiving first river"); 
@@ -233,7 +231,7 @@ public class PokerGameServer{
                         while(flop){
                             if(player1Confirm && player2Confirm && playerFold==false){
                                 String str = deck.drawCard();
-                                community[2] = str;
+                                community.add(str);
                                 for(int i=0; i<connections.size(); i++){
                                     PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
                                     pw.println("Receiving new river card");
@@ -255,7 +253,7 @@ public class PokerGameServer{
                         while(turn){
                             if(player1Confirm && player2Confirm && playerFold == false){
                                 String str = deck.drawCard();
-                                community[3] = str;
+                                community.add(str);
                                 for(int i=0; i<connections.size(); i++){
                                     PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
                                     pw.println("Receiving new river card");
@@ -276,7 +274,7 @@ public class PokerGameServer{
                         while(river){
                             if(player1Confirm && player2Confirm && playerFold==false){
                                 String str = deck.drawCard();
-                                community[4] = str;
+                                community.add(str);
                                 for(int i=0; i<connections.size(); i++){
                                     PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
                                     pw.println("Receiving new river card");
@@ -302,6 +300,61 @@ public class PokerGameServer{
                     
                     //If it gets to the end, it means the game is over
                     if(endgame){
+
+                    HashSet player1CardsConverted = new HashSet<Card>();
+                    HashSet player2CardsConverted = new HashSet<Card>();
+
+                    for(String s: player1Cards){
+                        String[] parts = s.split("_");
+                        int first = Integer.parseInt(parts[0]);
+                        int second = Integer.parseInt(parts[1]);    
+                        player1CardsConverted.add(new Card(first, second));
+                    }
+
+                    for(String s: player2Cards){
+                        String[] parts = s.split("_");
+                        int first = Integer.parseInt(parts[0]);
+                        int second = Integer.parseInt(parts[1]);    
+                        player2CardsConverted.add(new Card(first, second));
+                    }
+                    
+
+                    Hand calculatorPlayerOne = new Hand(player1CardsConverted);
+                    int playerOneScore = calculatorPlayerOne.calculateHandValue();
+
+                    Hand calculatorPlayerTwo = new Hand(player2CardsConverted);
+                    int playerTwoScore = calculatorPlayerTwo.calculateHandValue();
+
+                    if(playerOneScore > playerTwoScore){
+                        for(int i=0; i<connections.size(); i++){
+                            if(i == 0){
+                                PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
+                                pw.println("Won Showdown");
+                                pw.flush();
+                            }
+                            else{
+                                PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
+                                pw.println("Lost Showdown");
+                                pw.flush();
+                            }
+                        }
+                    }
+
+                    else{
+                        for(int i=0; i<connections.size(); i++){
+                            if(i == 1){
+                                PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
+                                pw.println("Won Showdown");
+                                pw.flush();
+                            }
+                            else{
+                                PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
+                                pw.println("Lost Showdown");
+                                pw.flush();
+                            }
+                        }
+                    }
+
                     initial=true;
                     flop=true;
                     river=true;
@@ -314,6 +367,9 @@ public class PokerGameServer{
                     }
                     endgame = false;
                     playerFold = false;
+
+                    player1Cards.clear();
+                    player2Cards.clear();
                     }
                         
                     
