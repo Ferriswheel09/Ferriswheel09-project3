@@ -12,6 +12,7 @@ public class PokerGameServer{
 
         //Instantiates all of the components, including the server socket, member names, and all active connections
         try{
+            //Adding comments
             serverSock = new ServerSocket(port);
             index = 0;
             members = new ArrayList<String>();
