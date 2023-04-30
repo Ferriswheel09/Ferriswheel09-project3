@@ -6,9 +6,9 @@ public class PokerGameServer{
     ServerSocket serverSock;
     ArrayList<Socket> connections;
     ArrayList<String> members;
-    int index;
     int users;
     boolean playerFold;
+    int pot;
     volatile boolean player1Confirm;
     volatile boolean player2Confirm;
 
@@ -18,7 +18,6 @@ public class PokerGameServer{
         try{
             serverSock = new ServerSocket(port);
             users = 0;
-            index = 0;
             members = new ArrayList<String>();
             connections = new ArrayList<Socket>();
             System.out.println("PokerServer started on port " + port);
@@ -41,8 +40,12 @@ public class PokerGameServer{
                 
                 //If the first line is secret, then a password is created
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
+                PrintWriter out = new PrintWriter(clientSock.getOutputStream());
+                out.println("Established connection");
+                out.flush();
                
-                        connections.add(clientSock);
+                connections.add(clientSock);
+                
                         
 
                 
@@ -72,10 +75,12 @@ public class PokerGameServer{
 
         Socket sock;
         int id;
+        int bettingAmount;
 
         public ClientHandler(Socket sock, int id){
             this.sock=sock;
             this.id = id;
+            bettingAmount = 500;
         }
 
         public void run(){
@@ -93,6 +98,7 @@ public class PokerGameServer{
                     //Checks first to see if the message is null
                     String msg = in.readLine();
                     
+
                     if(msg.equals("Fold")){
                         for(int i=0; i<users; i++){
                             if(id == i){
@@ -104,6 +110,7 @@ public class PokerGameServer{
                             else{
                                 PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
                                 pw.println("Won Fold");
+                                pw.println(pot);
                                 pw.flush();
                             }
                         }
@@ -119,6 +126,31 @@ public class PokerGameServer{
                                 player2Confirm=true;
                             }
                         }
+                    }
+
+                    if(msg.substring(0, 4).equals("Call")){
+                        int money = Integer.parseInt(msg.substring(5));
+                        pot+=money;
+                        bettingAmount -= money;
+                        for(int i=0; i<users; i++){
+                            PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
+                            if(id == i){
+                                pw.println("Updated Chips");
+                                pw.println(bettingAmount);
+                                pw.flush();
+                            }
+                            pw.println("Updated Pot");
+                            pw.println(pot);
+                            pw.flush();
+
+                        }
+                        if(id == 0){
+                            player1Confirm = true;
+                        }
+                        if(id ==1){
+                            player2Confirm = true;
+                        }
+
                     }
                 }
 
@@ -138,7 +170,7 @@ public class PokerGameServer{
         server.serve();
     }
 
- 
+    //Any and all game logic goes through here and is sent to everybody else
     private class GameTracker extends Thread{
         int memberNumbers;
         boolean cardDemo = true;
@@ -295,11 +327,28 @@ public class PokerGameServer{
                         }
 
                     //Todo: add an extra step that, if neither player folded, checks conditions and declares a winner
-                    
+                    if(playerFold){
+                        initial=true;
+                    flop=true;
+                    river=true;
+                    turn=true;
+                    preflop=true;
+                    for(int i=0; i<connections.size(); i++){
+                        PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
+                        pw.println("Clear");
+                        pw.flush();
+                    }
+                    endgame = false;
+                    playerFold = false;
+                    pot = 0;
+
+                    player1Cards.clear();
+                    player2Cards.clear();
+                    }
                     
                     
                     //If it gets to the end, it means the game is over
-                    if(endgame){
+                    if(endgame && !playerFold){
 
                     HashSet player1CardsConverted = new HashSet<Card>();
                     HashSet player2CardsConverted = new HashSet<Card>();
@@ -330,6 +379,7 @@ public class PokerGameServer{
                             if(i == 0){
                                 PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
                                 pw.println("Won Showdown");
+                                pw.println(pot);
                                 pw.flush();
                             }
                             else{
@@ -345,6 +395,7 @@ public class PokerGameServer{
                             if(i == 1){
                                 PrintWriter pw = new PrintWriter(connections.get(i).getOutputStream());
                                 pw.println("Won Showdown");
+                                pw.println(pot);
                                 pw.flush();
                             }
                             else{
@@ -367,6 +418,7 @@ public class PokerGameServer{
                     }
                     endgame = false;
                     playerFold = false;
+                    pot = 0;
 
                     player1Cards.clear();
                     player2Cards.clear();

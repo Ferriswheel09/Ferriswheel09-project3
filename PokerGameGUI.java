@@ -16,6 +16,7 @@ public class PokerGameGUI extends JFrame {
   private JButton raiseButton;
   private JTextField pot;
   private JTextField chips;
+  private JTextField amount;
 
   private JPanel playerRivalHandPanel;
   private JPanel riverPanel;
@@ -115,16 +116,23 @@ public class PokerGameGUI extends JFrame {
     bottomPanel.add(raiseButton);
 
 
-    JLabel chipsLabel = new JLabel("Chips");
+    JLabel chipsLabel = new JLabel("Chips:");
     bottomPanel.add(chipsLabel);
 
     chips = new JTextField(5);
+    chips.setEditable(false);
     bottomPanel.add(chips);
 
-    JLabel currentPot = new JLabel("Current Pot");
+    JLabel howMuch = new JLabel("How much:");
+    bottomPanel.add(howMuch);
+    amount = new JTextField(5);
+    bottomPanel.add(amount);
+
+    JLabel currentPot = new JLabel("Current Pot:");
     bottomPanel.add(currentPot);
 
     pot = new JTextField(5);
+    pot.setEditable(false);
     bottomPanel.add(pot);
 
     this.add(bottomPanel, BorderLayout.SOUTH);
@@ -201,8 +209,9 @@ public class PokerGameGUI extends JFrame {
     
     //Match the bet that was made
     public void call(){
-      out.println("Call");
+      out.println("Call " + amount.getText());
       out.flush();
+      amount.setText("");
     }
   }
 
@@ -220,10 +229,15 @@ public class PokerGameGUI extends JFrame {
         BufferedReader in = new BufferedReader(
           new InputStreamReader(sock.getInputStream())
         );
+        
+
+        //This loop essentially displays all the different messages the server can receive
+        //And how it should display it on the GUI
         while (true) {
           String msg = in.readLine();
           if (msg.equals("Established connection")) {
             System.out.println(msg);
+            chips.setText("500");
           }
           if(msg.equals("Receiving initial cards")){
             String cardOne = in.readLine();
@@ -270,9 +284,20 @@ public class PokerGameGUI extends JFrame {
         }
         if(msg.equals("Lost Fold")){
           JOptionPane.showMessageDialog(null, "You folded. Try again.");
+          pot.setText("");
+          if(chips.getText().equals("0")){
+            System.exit(0);
+          }
         }
         if(msg.equals("Won Fold")){
           JOptionPane.showMessageDialog(null, "All players folded. You won!!");
+          int won = Integer.parseInt(in.readLine());
+          int currentAmount = Integer.parseInt(chips.getText());
+          int total = won + currentAmount;
+          String s = Integer.toString(total);
+
+          chips.setText(s);
+          pot.setText("");
         }
         
         if(msg.equals("Clear")){
@@ -283,10 +308,30 @@ public class PokerGameGUI extends JFrame {
 
         if(msg.equals("Won Showdown")){
           JOptionPane.showMessageDialog(null, "Better hand. You won!!");
+          int won = Integer.parseInt(in.readLine());
+          int currentAmount = Integer.parseInt(chips.getText());
+          int total = won + currentAmount;
+          String s = Integer.toString(total);
+
+          chips.setText(s);
+          pot.setText("");
         }
 
         if(msg.equals("Lost Showdown")){
           JOptionPane.showMessageDialog(null, "Weak hand. Try again.");
+          if(chips.getText().equals("0")){
+            System.exit(0);
+          }
+          pot.setText("");
+        }
+
+        if(msg.equals("Updated Chips")){
+          String chipAmount = in.readLine();
+          chips.setText(chipAmount);
+        }
+        if(msg.equals("Updated Pot")){
+          String potAmount = in.readLine();
+          pot.setText(potAmount);
         }
           
         }
