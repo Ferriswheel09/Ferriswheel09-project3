@@ -97,7 +97,13 @@ public class PokerGameServer{
                 while(true){
                     //Checks first to see if the message is null
                     String msg = in.readLine();
-                    
+                    if(msg == null){
+                        for(int i=0; i<connections.size(); i++){
+                            if(connections.get(i) == sock){
+                                connections.remove(i);
+                            }
+                        }
+                    }
 
                     if(msg.equals("Fold")){
                         for(int i=0; i<users; i++){
@@ -152,6 +158,8 @@ public class PokerGameServer{
                         }
 
                     }
+
+                    
                 }
 
             }catch(Exception e){}

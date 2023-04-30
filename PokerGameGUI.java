@@ -48,7 +48,7 @@ public class PokerGameGUI extends JFrame {
     //Sets the Foundation for the Window
     super();
     status = "Disconnected";
-    this.setTitle("GWack -- GW Slack Simulator (" + status + ")");
+    this.setTitle("Poker Simulator (" + status + ")");
     this.setSize(800, 600);
 
     //Creates the name, ip address, and port fields to be inputted
@@ -62,7 +62,7 @@ public class PokerGameGUI extends JFrame {
         //Sets all the text to flip around
         connect.setText("Disconnect");
         status = "Connected";
-        this.setTitle("GWack -- GW Slack Simulator (" + status + ")");
+        this.setTitle("Poker Simulator (" + status + ")");
         try {
           int portNum = Integer.parseInt(port.getText());
           hello = new ClientSide(ipadd.getText(), portNum);
@@ -70,6 +70,16 @@ public class PokerGameGUI extends JFrame {
           System.err.println("Error connecting");
           JOptionPane.showMessageDialog(null, "Error connecting");
         }
+      }
+      else{
+        connect.setText("Connect");
+        status = "Disconnected";
+        this.setTitle("Poker Simulator (" + status + ")");
+        ipadd.setText("");
+        port.setText("");
+        playerRivalHandPanel.removeAll();
+        riverPanel.removeAll();
+        centerPanel.revalidate();
       }
     });
 
